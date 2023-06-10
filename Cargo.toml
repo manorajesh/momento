@@ -14,7 +14,3 @@ exclude = [".vscode", ".github"]
 
 [lib]
 name = "movement"
-
-[[bin]]
-path = "src/bin.rs"
-name = "movement"
