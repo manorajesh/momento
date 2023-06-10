@@ -3,15 +3,22 @@ use std::{
     ops::{Add, AddAssign, Sub, SubAssign},
 };
 
+/// A struct that represents a watch which keeps track of the start time, offset, and meridiem.
 #[derive(Debug, Clone, Copy, Default)]
-struct Watch {
-    start: i32,
-    offset: i32,
-    meridiem: bool,
+pub struct Watch {
+    /// the starting time of the watch. This won't change over the course of the program
+    pub start: i32,
+
+    /// the offset of the watch or the time span that will be added to the start time
+    pub offset: i32,
+
+    /// whether the watch is in 12h or 24h format (true for 12h)
+    pub meridiem: bool,
 }
 
 impl Watch {
-    fn new(time: &str, meridiem: bool) -> Self {
+    /// create a new watch with the given time and meridiem option
+    pub fn new(time: &str, meridiem: bool) -> Self {
         let secs = Watch::str_to_secs(time, true);
         Watch {
             start: secs,
@@ -20,8 +27,8 @@ impl Watch {
         }
     }
 
-    // take a time string (e.g. "01:23:45 AM") and return the number of seconds
-    fn str_to_secs(time: &str, is_time_span: bool) -> i32 {
+    /// take a time string (e.g. "01:23:45 AM") and return the number of seconds
+    pub fn str_to_secs(time: &str, is_time_span: bool) -> i32 {
         let pm = {
             let time = time.replace('.', "").to_uppercase();
             time.contains("PM") && is_time_span
@@ -37,16 +44,16 @@ impl Watch {
         hours * 3600 + minutes * 60 + seconds
     }
 
-    // convert secs to string
-    fn secs_to_mil(secs: i32) -> String {
+    /// convert secs to string (HH:MM:SS format)
+    pub fn secs_to_mil(secs: i32) -> String {
         let hours = secs / 3600 % 24;
         let minutes = (secs % 3600) / 60;
         let seconds = secs % 60;
         format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
     }
 
-    // 24h to 12h
-    fn mil_to_mer(secs: i32) -> String {
+    /// convert secs to string (12h format)
+    pub fn secs_to_mer(secs: i32) -> String {
         let mut hours = secs / 3600 % 24;
         let minutes = (secs % 3600) / 60;
         let seconds = secs % 60;
@@ -65,8 +72,8 @@ impl Watch {
         format!("{:02}:{:02}:{:02} {}", hours, minutes, seconds, meridiem)
     }
 
-    // convert diff seconds to num of days later or before
-    fn diff_to_days(diff: i32) -> String {
+    /// convert diff seconds to num of days later or before
+    pub fn diff_to_days(diff: i32) -> String {
         let days = diff / 84600;
         match days.cmp(&0) {
             std::cmp::Ordering::Greater => format!(" +{} days", days),
@@ -75,7 +82,8 @@ impl Watch {
         }
     }
 
-    fn add_offset(&self) -> i32 {
+    /// return the end time of the watch
+    pub fn add_offset(&self) -> i32 {
         self.start + self.offset
     }
 }
@@ -158,7 +166,7 @@ impl fmt::Display for Watch {
         let diff = self.add_offset() - self.start;
 
         let end_str = if self.meridiem {
-            Watch::mil_to_mer(end)
+            Watch::secs_to_mer(end)
         } else {
             Watch::secs_to_mil(end)
         };
@@ -252,10 +260,4 @@ mod tests {
         watch -= 7989;
         assert_eq!(format!("{}", watch), "11:36:11 AM -1 days");
     }
-}
-
-fn main() {
-    let mut watch = Watch::new("2:15:01 A.M", true);
-    watch += "3:14";
-    println!("{}", watch);
 }

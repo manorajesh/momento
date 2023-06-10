@@ -1,7 +1,20 @@
 [package]
-name = "time-calc"
+name = "movement"
 version = "0.1.0"
 edition = "2021"
+description = "Library to help with time calculations"
+readme = "README.md"
+repository = "https://github.com/manorajesh/momento"
+license = "MIT"
+keywords = ["time", "calculator"]
+categories = ["date-and-time"]
+exclude = [".vscode", ".github"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "movement"
+
+[[bin]]
+name = "movement"
+path = "src/bin.rs"

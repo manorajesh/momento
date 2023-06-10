@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "time-calc"
+name = "movement"
 version = "0.1.0"
