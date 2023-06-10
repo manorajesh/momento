@@ -1,16 +1,68 @@
+//! A simple library that helps with time calculations. The most common use case would
+//! be to calculate the end time of a watch given the start time and the time span.
+//! Internally, the library uses [`i64`] to represent time in seconds. From there, you can
+//! convert the time to a string in either 12h or 24h format by using the [`fmt::Display`]
+//! trait.
+//! 
+//! # Usage
+//! 
+//! Initialize a watch with the `start time` and `meridiem` option as the arguments. The start time 
+//! can be in either 12h or 24h format. The meridiem option is a [`bool`] that represents whether 
+//! the watch is in 12h or 24h format (true for 12h). The default display format is `HH:MM:SS` 
+//! and +/- days.
+//!
+//! # Examples
+//!
+//! ```
+//! use movement::Watch;
+//!
+//! let mut watch = Watch::new("13:34", true);
+//! watch += "01:23:45";
+//! watch += 43434343;
+//! println!("{}", watch);
+//! // 08:03:28 AM +503 days
+//! ```
+//!
+//! ```
+//! use movement::Watch;
+//!
+//! let mut watch = Watch::new("01:34 AM", false);
+//! watch += "01:23:45";
+//! watch -= 1000000;
+//! println!("{}", watch);
+//! // 13:11:05 -12 days
+//! ```
+//!
+//! ```
+//! use movement::Watch;
+//!
+//! let mut watch = Watch::new("13:34", true);
+//! let new_watch = watch + "01:23:45";
+//! println!("{}", new_watch);
+//! // 02:57:45 PM
+//! ```
+
 use std::{
     fmt,
     ops::{Add, AddAssign, Sub, SubAssign},
 };
 
 /// A struct that represents a watch which keeps track of the start time, offset, and meridiem.
+/// Can be addded and subtracted with i64 and &str. i64 will be treated as seconds and &str will be
+/// treated as a time string (e.g. "01:23:45"). The default display format is `HH:MM:SS` and +/- days.
+/// 
+/// ### Note on i64
+/// Using i64 to represent time in seconds has a maximum time span to several hundred billion years from.
+/// This is more than enough for most use cases. There is a few microseconds added to computation time and doubling
+/// of memory usage compared to using i32. However, the tradeoff is worth it in my opinion as i32 has a max of around
+/// 68 years.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Watch {
     /// the starting time of the watch. This won't change over the course of the program
-    pub start: i32,
+    pub start: i64,
 
     /// the offset of the watch or the time span that will be added to the start time
-    pub offset: i32,
+    pub offset: i64,
 
     /// whether the watch is in 12h or 24h format (true for 12h)
     pub meridiem: bool,
@@ -28,15 +80,15 @@ impl Watch {
     }
 
     /// take a time string (e.g. "01:23:45 AM") and return the number of seconds
-    pub fn str_to_secs(time: &str, is_time_span: bool) -> i32 {
+    pub fn str_to_secs(time: &str, is_time_span: bool) -> i64 {
         let pm = {
             let time = time.replace('.', "").to_uppercase();
             time.contains("PM") && is_time_span
         };
         let mut time = time.split(' ').next().unwrap_or("").split(':');
-        let mut hours = time.next().unwrap_or("").parse::<i32>().unwrap_or(0);
-        let minutes = time.next().unwrap_or("").parse::<i32>().unwrap_or(0);
-        let seconds = time.next().unwrap_or("").parse::<i32>().unwrap_or(0);
+        let mut hours = time.next().unwrap_or("").parse::<i64>().unwrap_or(0);
+        let minutes = time.next().unwrap_or("").parse::<i64>().unwrap_or(0);
+        let seconds = time.next().unwrap_or("").parse::<i64>().unwrap_or(0);
 
         if pm {
             hours += 12;
@@ -45,7 +97,7 @@ impl Watch {
     }
 
     /// convert secs to string (HH:MM:SS format)
-    pub fn secs_to_mil(secs: i32) -> String {
+    pub fn secs_to_mil(secs: i64) -> String {
         let hours = secs / 3600 % 24;
         let minutes = (secs % 3600) / 60;
         let seconds = secs % 60;
@@ -53,7 +105,7 @@ impl Watch {
     }
 
     /// convert secs to string (12h format)
-    pub fn secs_to_mer(secs: i32) -> String {
+    pub fn secs_to_mer(secs: i64) -> String {
         let mut hours = secs / 3600 % 24;
         let minutes = (secs % 3600) / 60;
         let seconds = secs % 60;
@@ -73,8 +125,8 @@ impl Watch {
     }
 
     /// convert diff seconds to num of days later or before
-    pub fn diff_to_days(diff: i32) -> String {
-        let days = diff / 84600;
+    pub fn diff_to_days(diff: i64) -> String {
+        let days = diff / 86400;
         match days.cmp(&0) {
             std::cmp::Ordering::Greater => format!(" +{} days", days),
             std::cmp::Ordering::Less => format!(" -{} days", days.abs()),
@@ -83,16 +135,16 @@ impl Watch {
     }
 
     /// return the end time of the watch
-    pub fn add_offset(&self) -> i32 {
+    pub fn add_offset(&self) -> i64 {
         self.start + self.offset
     }
 }
 
 // Operations
-impl Add<i32> for Watch {
+impl Add<i64> for Watch {
     type Output = Watch;
 
-    fn add(self, rhs: i32) -> Self::Output {
+    fn add(self, rhs: i64) -> Self::Output {
         Watch {
             offset: self.offset + rhs,
             ..self
@@ -100,10 +152,10 @@ impl Add<i32> for Watch {
     }
 }
 
-impl Sub<i32> for Watch {
+impl Sub<i64> for Watch {
     type Output = Watch;
 
-    fn sub(self, rhs: i32) -> Self::Output {
+    fn sub(self, rhs: i64) -> Self::Output {
         Watch {
             offset: self.offset - rhs,
             ..self
@@ -129,11 +181,11 @@ impl Sub<&str> for Watch {
     }
 }
 
-// Custom trait that will be implemented by i32 and &str
+// Custom trait that will be implemented by i64 and &str
 trait AddableToWatch {}
 
-// Implementing the trait for i32 and &str
-impl AddableToWatch for i32 {}
+// Implementing the trait for i64 and &str
+impl AddableToWatch for i64 {}
 impl AddableToWatch for &str {}
 
 impl<T: AddableToWatch + Copy> AddAssign<T> for Watch
@@ -157,13 +209,9 @@ where
 // Display and Formatting
 impl fmt::Display for Watch {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let end = if self.add_offset() < 0 {
-            86400 + self.add_offset()
-        } else {
-            self.add_offset()
-        };
+        let end = (self.add_offset() % 86400 + 86400) % 86400;
 
-        let diff = self.add_offset() - self.start;
+        let diff = self.offset + self.start - end;
 
         let end_str = if self.meridiem {
             Watch::secs_to_mer(end)
@@ -259,5 +307,12 @@ mod tests {
 
         watch -= 7989;
         assert_eq!(format!("{}", watch), "11:36:11 AM -1 days");
+    }
+
+    #[test]
+    fn large_subtraction() {
+        let mut watch = Watch::new("13:34", true);
+        watch -= 100000000;
+        assert_eq!(format!("{}", watch), "03:47:20 AM -1157 days");
     }
 }
