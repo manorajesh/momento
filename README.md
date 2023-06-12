@@ -1,4 +1,8 @@
 # movement
+![Build Status](https://github.com/manorajesh/movement/actions/workflows/rust.yml/badge.svg)
+![Downloads](https://img.shields.io/crates/d/movement)
+![Version](https://img.shields.io/crates/v/movement)
+![License](https://img.shields.io/crates/l/movement)
 
 Simple library and command to help out with time calculations (e.g. 1:23 PM + 3:30)
 

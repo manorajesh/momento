@@ -52,7 +52,7 @@ use std::{
 /// treated as a time string (e.g. "01:23:45"). The default display format is `HH:MM:SS` and +/- days.
 /// 
 /// ### Note on i64
-/// Using i64 to represent time in seconds has a maximum time span to several hundred billion years from.
+/// Using i64 to represent time in seconds has a maximum time span of several hundred billion years.
 /// This is more than enough for most use cases. There is a few microseconds added to computation time and doubling
 /// of memory usage compared to using i32. However, the tradeoff is worth it in my opinion as i32 has a max of around
 /// 68 years.
@@ -137,6 +137,11 @@ impl Watch {
     /// return the end time of the watch
     pub fn add_offset(&self) -> i64 {
         self.start + self.offset
+    }
+
+    /// change the meridiem option
+    pub fn change_meridiem(&mut self, meridiem: bool) {
+        self.meridiem = meridiem;
     }
 }
 
@@ -314,5 +319,16 @@ mod tests {
         let mut watch = Watch::new("13:34", true);
         watch -= 100000000;
         assert_eq!(format!("{}", watch), "03:47:20 AM -1157 days");
+    }
+
+    #[test]
+    fn changing_meridiem() {
+        let mut watch = Watch::new("13:34", true);
+        watch -= 100000000;
+        assert_eq!(format!("{}", watch), "03:47:20 AM -1157 days");
+
+        watch.change_meridiem(false);
+        watch += "13:23:03";
+        assert_eq!(format!("{}", watch), "17:10:23 -1157 days");
     }
 }
