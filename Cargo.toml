@@ -1,10 +1,10 @@
 [package]
 name = "movement"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Library to help with time calculations"
 readme = "README.md"
-repository = "https://github.com/manorajesh/momento"
+repository = "https://github.com/manorajesh/movement"
 license = "MIT"
 keywords = ["time", "calculator"]
 categories = ["date-and-time"]

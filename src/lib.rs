@@ -8,8 +8,8 @@
 //! 
 //! Initialize a watch with the `start time` and `meridiem` option as the arguments. The start time 
 //! can be in either 12h or 24h format. The meridiem option is a [`bool`] that represents whether 
-//! the watch is in 12h or 24h format (true for 12h). The default display format is `HH:MM:SS` 
-//! and +/- days.
+//! the watch is in 12h or 24h format (true for 12h). It can be changed with the method `change_meridiem()`.
+//! The default display format is `HH:MM:SS` and +/- days.
 //!
 //! # Examples
 //!
